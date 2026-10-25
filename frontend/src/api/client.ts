@@ -245,6 +245,11 @@ export const api = {
     );
   },
 
+  /** Full-page redirect that starts the real Google OAuth flow. */
+  googleAuthUrl(): string {
+    return `${API_BASE}/auth/google`;
+  },
+
   /** Full-page redirect to the Slack OAuth authorize screen. */
   connectSlack(): void {
     window.location.href = `${API_BASE}/slack/connect`;

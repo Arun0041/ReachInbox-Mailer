@@ -17,6 +17,18 @@ const googleClient = new OAuth2Client(
   `${config.appUrl}/api/auth/google/callback`,
 );
 
+// Cross-origin hosting (frontend on Vercel, API on Render) needs
+// SameSite=None + Secure; local http dev keeps Lax.
+function sessionCookieOptions() {
+  const secure = config.appUrl.startsWith("https://");
+  return {
+    httpOnly: true,
+    sameSite: secure ? ("none" as const) : ("lax" as const),
+    secure,
+    maxAge: 7 * 24 * 3600 * 1000,
+  };
+}
+
 function setSessionCookie(res: Response, user: { id: number; email: string; name: string | null; avatar_url: string | null }) {
   const token = signSession({
     id: user.id,
@@ -24,11 +36,7 @@ function setSessionCookie(res: Response, user: { id: number; email: string; name
     name: user.name,
     avatar_url: user.avatar_url,
   });
-  res.cookie(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    maxAge: 7 * 24 * 3600 * 1000,
-  });
+  res.cookie(SESSION_COOKIE, token, sessionCookieOptions());
 }
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -138,11 +146,7 @@ router.get("/google/callback", async (req, res) => {
       name: user.name,
       avatar_url: user.avatar_url,
     });
-    res.cookie(SESSION_COOKIE, token, {
-      httpOnly: true,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 3600 * 1000,
-    });
+    res.cookie(SESSION_COOKIE, token, sessionCookieOptions());
     res.redirect(config.frontendUrl);
   } catch (err) {
     console.error("[auth] google callback failed:", (err as Error).message);

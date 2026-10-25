@@ -1,0 +1,47 @@
+# Render blueprint — deploy the backend + free Postgres.
+# Create a free Upstash Redis (https://upstash.com) first and paste its
+# rediss:// URL when prompted for REDIS_URL.
+services:
+  - type: web
+    name: reachinbox-mailer-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: npm run start
+    autoDeploy: true
+    envVars:
+      - key: APP_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: WORKER_CONCURRENCY
+        value: "5"
+      - key: MIN_DELAY_BETWEEN_EMAILS_MS
+        value: "2000"
+      - key: MAX_EMAILS_PER_HOUR_PER_SENDER
+        value: "200"
+      - key: ETHEREAL_USER
+        sync: false
+      - key: ETHEREAL_PASS
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: SLACK_CLIENT_ID
+        sync: false
+      - key: SLACK_CLIENT_SECRET
+        sync: false
+      - key: DEFAULT_SENDERS
+        value: "oliver.brown@domain.io,grant@domain.io,amanda.clark@domain.io"
+
+databases:
+  - name: reachinbox-mailer-db
+    plan: free
+    databaseName: outbox
+    user: outbox

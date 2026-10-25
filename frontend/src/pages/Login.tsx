@@ -21,7 +21,7 @@ export default function Login() {
       navigate("/");
       return;
     }
-    window.location.href = "/api/auth/google";
+    window.location.href = api.googleAuthUrl();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

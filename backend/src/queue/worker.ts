@@ -11,6 +11,7 @@ import { EMAIL_QUEUE } from "./queue.js";
 // Dedicated blocking connection for the worker (maxRetriesPerRequest: null required).
 const workerConnection = new Redis(config.redisUrl, {
   maxRetriesPerRequest: null,
+  enableReadyCheck: false,
 });
 
 const redis = new Redis(config.redisUrl);

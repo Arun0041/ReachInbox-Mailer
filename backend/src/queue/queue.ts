@@ -3,7 +3,11 @@ import { Redis } from "ioredis";
 import { config } from "../config.js";
 
 // BullMQ requires maxed-out connections (blocking commands on workers).
-const connection = new Redis(config.redisUrl, { maxRetriesPerRequest: null });
+// enableReadyCheck:false keeps Upstash (free hosted Redis) happy.
+const connection = new Redis(config.redisUrl, {
+  maxRetriesPerRequest: null,
+  enableReadyCheck: false,
+});
 
 export const EMAIL_QUEUE = "email-send";
 

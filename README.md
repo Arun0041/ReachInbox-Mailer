@@ -11,6 +11,55 @@ OutboxMailer/
 └── docker-compose.yml   Redis, Postgres, Elasticsearch
 ```
 
+## Free hosting (Vercel + Render + Upstash)
+
+The full stack runs on free tiers: **Vercel** (frontend), **Render** (API +
+Postgres), **Upstash** (Redis). Elasticsearch has no practical free host — the
+API automatically falls back to SQL search when it is unreachable, so search
+still works.
+
+### 1. Upstash Redis (free)
+
+1. upstash.com → Create database → region near Render's (e.g. Frankfurt).
+2. Copy the **Redis URL** (`rediss://default:...`). BullMQ works over Upstash's
+   TCP endpoint (the queue connections already use
+   `maxRetriesPerRequest: null, enableReadyCheck: false`).
+
+### 2. Render (backend + Postgres)
+
+1. Render dashboard → **New → Blueprint** → pick this repo → the `render.yaml`
+   blueprint creates the web service + free Postgres.
+2. Fill the prompted values:
+   - `APP_URL` → `https://<your-service>.onrender.com`
+   - `FRONTEND_URL` → your Vercel URL (set after step 3, or edit later)
+   - `REDIS_URL` → the Upstash `rediss://...` URL
+3. Free-instance note: the service sleeps after ~15 min without traffic, which
+   delays queued emails until the next request wakes it. For an always-on
+   scheduler on the free plan, ping `https://<service>.onrender.com/api/health`
+   every 10 minutes with a free uptime monitor (cron-job.org / UptimeRobot).
+
+### 3. Vercel (frontend)
+
+1. vercel.com → Add New Project → import the repo.
+2. **Root Directory: `frontend`** (framework auto-detected as Vite).
+3. Environment variables:
+   - `VITE_API_BASE` = `https://<your-service>.onrender.com/api`
+   - `VITE_USE_MOCKS` = `false`
+4. Deploy. `vercel.json` already handles SPA deep links (`/compose`, `/emails/:id`).
+
+### 4. OAuth redirect URIs (hosted URLs)
+
+- Google Cloud Console → add
+  `https://<your-service>.onrender.com/api/auth/google/callback`, then set
+  `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` on Render.
+- Slack app → add `https://<your-service>.onrender.com/api/slack/callback`,
+  then set `SLACK_CLIENT_ID` / `SLACK_CLIENT_SECRET` on Render.
+
+Cross-origin sessions: with `APP_URL` on https, the API sets its session cookie
+with `SameSite=None; Secure` (see `backend/src/routes/auth.ts`), which Chrome,
+Edge and Firefox accept for the Vercel→Render credential'd requests. Safari's
+cross-site cookie blocking can interfere; testing in Chrome is recommended.
+
 ## Quick start
 
 ```bash
