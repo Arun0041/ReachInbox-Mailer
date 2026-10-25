@@ -182,11 +182,17 @@ export default function Compose() {
           <div className="relative ml-1">
             <button
               type="button"
-              onClick={() => setSendMenuOpen((v) => !v)}
+              onClick={() => {
+                if (scheduledAt) {
+                  void schedule();
+                } else {
+                  setSendMenuOpen((v) => !v);
+                }
+              }}
               className="flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-brand bg-white px-4 text-sm font-medium text-brand transition hover:bg-brand-soft"
             >
-              {scheduledAt ? "Send Later" : "Send"}
-              <ChevronDown className="h-4 w-4" />
+              {scheduledAt ? `Schedule for ${formatLabel(scheduledAt)}` : "Send"}
+              {!scheduledAt && <ChevronDown className="h-4 w-4" />}
             </button>
 
             {sendMenuOpen && (

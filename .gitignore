@@ -26,3 +26,7 @@ Thumbs.db
 # Misc
 *.tsbuildinfo
 .vite/
+
+# Demo video assets (kept local, not for the repo)
+demo-recordings/
+*.mp4
