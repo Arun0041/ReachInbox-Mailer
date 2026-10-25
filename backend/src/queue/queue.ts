@@ -30,8 +30,6 @@ export async function enqueueEmail(emailId: number, scheduledAt: Date): Promise<
     {
       jobId: `email-${emailId}`,
       delay,
-      // Earlier emails win when several land in the same rate-limit window.
-      priority: scheduledAt.getTime(),
     },
   );
 }
